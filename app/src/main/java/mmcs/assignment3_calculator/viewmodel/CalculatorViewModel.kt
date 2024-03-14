@@ -2,13 +2,17 @@ package mmcs.assignment3_calculator.viewmodel
 
 import androidx.databinding.BaseObservable
 import androidx.databinding.ObservableField
+import kotlin.math.abs
 
 class CalculatorViewModel: BaseObservable(), Calculator {
     override var display = ObservableField<String>()
 
+    val eps = 0.000000001
+    val e = 1000000.0
     var wasPoint: Boolean = false
     var wasСompute: Boolean = false
     var digit: Double = 0.0
+    var digit2: String = ""
     var lastDigit: Double? = 0.0
     var k: Int = 10
     var operation: Operation? = null
@@ -16,9 +20,10 @@ class CalculatorViewModel: BaseObservable(), Calculator {
     override fun addDigit(dig: Int) {
         if (!wasСompute){
             if (wasPoint){
+                digit2 += dig
                 digit += dig / (k + 0.0)
                 k*=10
-                display.set(""+digit)
+                display.set(""+digit.toInt()+"."+digit2)
             }else{
                 digit = 10 * digit + dig
                 display.set(""+digit.toInt())
@@ -39,14 +44,15 @@ class CalculatorViewModel: BaseObservable(), Calculator {
         }
         lastDigit = digit
         digit = 0.0
+        digit2 = ""
         k = 10
         wasPoint = false
         wasСompute = false
         operation = op
-        display.set("0")
     }
 
     override fun compute() {
+        var b = true
         if (lastDigit != null){
             when (operation) {
                 Operation.ADD -> {
@@ -63,20 +69,30 @@ class CalculatorViewModel: BaseObservable(), Calculator {
                         digit = lastDigit!! / digit
                     }
                     else{
+                        display.set("ERROR")
                         digit = 0.0
+                        b = false
                     }
                 }
                 else -> {}
             }
             lastDigit = null
             wasСompute = true
-            display.set(""+digit)
+            if (b){
+                var dInt1 = digit.toInt()
+                if (abs(dInt1 - digit) < eps){
+                    display.set(""+digit.toInt())
+                }else{
+                    display.set(""+(digit*e).toInt() / e)
+                }
+            }
         }
     }
 
     override fun clear() {
         lastDigit = null
         digit = 0.0
+        digit2 = ""
         k = 10
         wasPoint = false
         wasСompute = false
